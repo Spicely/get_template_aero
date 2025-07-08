@@ -39,7 +39,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   get: 
-  flutter_dotenv:
   permission_handler:
   path:
   path_provider:
@@ -70,7 +69,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  envied_generator: 
   drift_dev:
   build_runner: 
   flutter_launcher_icons: 
@@ -95,7 +93,6 @@ flutter:
   uses-material-design: true
   # To add assets to your application, add an assets section, like this:
   assets:
-    - .env
     - assets/images/
     - assets/components/
   #   - images/a_dot_ham.jpeg
