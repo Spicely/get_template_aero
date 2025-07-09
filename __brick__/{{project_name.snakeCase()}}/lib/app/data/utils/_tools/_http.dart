@@ -71,6 +71,7 @@ class _Http {
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
+    ResponseType? responseType,
     T Function(dynamic)? convert,
   }) async {
     data = data ?? (method == HttpMethod.get ? null : {});
@@ -91,6 +92,7 @@ class _Http {
         method: _getMethod(method),
         headers: headers,
         contentType: contentType,
+        responseType: responseType,
       ),
     );
 
