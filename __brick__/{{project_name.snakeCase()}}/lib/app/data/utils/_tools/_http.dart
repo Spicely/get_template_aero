@@ -31,16 +31,7 @@ enum HttpMethod {
 class _Http {
   final bool debug;
 
-  /// 超时时间
-  final Duration connectTimeout;
-
-  final Duration receiveTimeout;
-
-  _Http._({
-    this.debug = false,
-    this.connectTimeout = const Duration(seconds: 10),
-    this.receiveTimeout = const Duration(seconds: 10),
-  });
+  _Http._({this.debug = false});
 
   /// global dio object
   Dio? _dio;
@@ -50,6 +41,10 @@ class _Http {
 
   String get baseUrl => _dio == null ? _options.baseUrl : _dio!.options.baseUrl;
 
+  set receiveTimeout(Duration time) => _dio == null ? _options.receiveTimeout = time : _dio!.options.receiveTimeout = time;
+
+  set connectTimeout(Duration time) => _dio == null ? _options.connectTimeout = time : _dio!.options.connectTimeout = time;
+
   /// 代理设置 代理地址
   String? proxyUrl;
 
@@ -57,8 +52,8 @@ class _Http {
   HttpInterceptors? interceptors;
 
   late final BaseOptions _options = BaseOptions(
-    connectTimeout: connectTimeout,
-    receiveTimeout: receiveTimeout,
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
   );
 
   /// request method
