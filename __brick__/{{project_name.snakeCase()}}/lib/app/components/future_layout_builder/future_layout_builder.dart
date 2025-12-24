@@ -10,6 +10,7 @@ class FutureLayoutBuilderController {
   FutureLayoutBuilderController();
 
   /// 重载
+  /// 重载
   void reload() {
     _state?.reload();
   }
@@ -51,6 +52,8 @@ class FutureLayoutBuilder<T> extends StatefulWidget {
 class _FutureLayoutBuilderState<T> extends State<FutureLayoutBuilder<T>> {
   late Future<dynamic> _future;
 
+  bool _isReloading = false;
+
   ValueKey key = ValueKey(DateTime.now());
 
   @override
@@ -76,6 +79,9 @@ class _FutureLayoutBuilderState<T> extends State<FutureLayoutBuilder<T>> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isReloading) {
+      return widget.config?.loadingWidget(context) ?? themeConfig.loadingWidget(context);
+    }
     if (widget.data != null) {
       return widget.builder(widget.data as T);
     }
@@ -99,9 +105,14 @@ class _FutureLayoutBuilderState<T> extends State<FutureLayoutBuilder<T>> {
   }
 
   void reload() async {
-    key = ValueKey(DateTime.now());
-    _future = onFuture();
+    _isReloading = true;
     setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      key = ValueKey(DateTime.now());
+      _future = onFuture();
+      _isReloading = false;
+      if (mounted) setState(() {});
+    });
   }
 
   Future<dynamic> onFuture() async {
