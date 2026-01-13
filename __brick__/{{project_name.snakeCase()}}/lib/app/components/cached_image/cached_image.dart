@@ -28,11 +28,14 @@ Widget _errorBuilder(BuildContext context, String url, Object error, {double? wi
       ),
     );
 
-Widget _cachePlaceholder(BuildContext context, String url, {double? width, double? height}) => Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade100,
-      child: Container(width: width, height: height, color: Colors.grey),
-    );
+Widget _cachePlaceholder(BuildContext context, String url, {double? width, double? height}) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  return Shimmer.fromColors(
+    baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+    highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+    child: Container(width: width, height: height, color: isDark ? Colors.grey.shade800 : Colors.grey),
+  );
+}
 
 class CachedConfig {
   final Widget Function(BuildContext context, String url, Object error, {double? width, double? height}) errorBuilder;
@@ -46,7 +49,7 @@ class CachedConfig {
   });
 }
 
-class CachedImage extends StatelessWidget {
+class CachedImage extends StatefulWidget {
   final String? imageUrl;
 
   final String? assetUrl;
@@ -89,84 +92,176 @@ class CachedImage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final borderRadius = this.borderRadius ?? BorderRadius.circular(themeConfig.radius);
+  State<CachedImage> createState() => _CachedImageState();
+}
 
-    if (file != null) {
-      if (width != null && height != null) {
+class _CachedImageState extends State<CachedImage> {
+  /// 图片是否已经在缓存中
+  bool _isImageCached = false;
+
+  /// 缓存的 ImageProvider，用于直接渲染已缓存的图片
+  CachedNetworkImageProvider? _cachedProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkImageCache();
+  }
+
+  @override
+  void didUpdateWidget(CachedImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      _isImageCached = false;
+      _cachedProvider = null;
+      _checkImageCache();
+    }
+  }
+
+  /// 检查图片是否已经在缓存中
+  void _checkImageCache() {
+    if (utils.tools.isNotEmpty(widget.imageUrl)) {
+      final provider = CachedNetworkImageProvider(widget.imageUrl!);
+      // 同步检查内存缓存
+      final cacheKey = provider.obtainKey(ImageConfiguration.empty);
+      cacheKey.then((key) {
+        final cachedImage = PaintingBinding.instance.imageCache.containsKey(key);
+        if (cachedImage && mounted) {
+          setState(() {
+            _isImageCached = true;
+            _cachedProvider = provider;
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final borderRadius = widget.borderRadius ?? BorderRadius.circular(themeConfig.radius);
+
+    if (widget.file != null) {
+      if (widget.width != null && widget.height != null) {
         return ClipRRect(
           borderRadius: borderRadius,
           child: Image(
-            image: FileImage(File(file!.path), scale: 2.0),
-            fit: fit,
-            color: imageColor,
-            filterQuality: filterQuality,
-            width: width,
-            height: height,
+            image: FileImage(File(widget.file!.path), scale: 2.0),
+            fit: widget.fit,
+            color: widget.imageColor,
+            filterQuality: widget.filterQuality,
+            width: widget.width,
+            height: widget.height,
           ),
         );
       } else {
         return ClipRRect(
           borderRadius: borderRadius,
           child: Image(
-            image: FileImage(File(file!.path)),
-            fit: fit,
-            color: imageColor,
-            filterQuality: filterQuality,
-            width: width,
-            height: height,
+            image: FileImage(File(widget.file!.path)),
+            fit: widget.fit,
+            color: widget.imageColor,
+            filterQuality: widget.filterQuality,
+            width: widget.width,
+            height: widget.height,
           ),
         );
       }
     }
 
-    if (utils.tools.isNotEmpty(assetUrl)) {
+    if (utils.tools.isNotEmpty(widget.assetUrl)) {
       return ClipRRect(
         borderRadius: borderRadius,
         child: Image(
-          image: AssetImage(assetUrl!, package: package),
-          fit: fit,
-          color: imageColor,
-          filterQuality: filterQuality,
-          width: width,
-          height: height,
+          image: AssetImage(widget.assetUrl!, package: widget.package),
+          fit: widget.fit,
+          color: widget.imageColor,
+          filterQuality: widget.filterQuality,
+          width: widget.width,
+          height: widget.height,
         ),
       );
     }
 
-    if (memory != null) {
+    if (widget.memory != null) {
       return ClipRRect(
         borderRadius: borderRadius,
         child: Image(
-          image: MemoryImage(memory!),
-          fit: fit,
-          color: imageColor,
-          filterQuality: filterQuality,
-          width: width,
-          height: height,
+          image: MemoryImage(widget.memory!),
+          fit: widget.fit,
+          color: widget.imageColor,
+          filterQuality: widget.filterQuality,
+          width: widget.width,
+          height: widget.height,
         ),
       );
     }
-    if (utils.tools.isNotEmpty(imageUrl)) {
+
+    if (utils.tools.isNotEmpty(widget.imageUrl)) {
+      // 如果图片已经在缓存中，直接使用 Image 组件渲染，完全跳过 placeholder
+      if (_isImageCached && _cachedProvider != null) {
+        return ClipRRect(
+          borderRadius: borderRadius,
+          child: Image(
+            image: _cachedProvider!,
+            width: widget.width,
+            height: widget.height,
+            fit: widget.fit,
+            color: widget.imageColor,
+            filterQuality: widget.filterQuality,
+            gaplessPlayback: true, // 防止图片切换时闪烁
+          ),
+        );
+      }
+
       return ClipRRect(
         borderRadius: borderRadius,
         child: CachedNetworkImage(
-          width: width,
-          height: height,
-          imageUrl: imageUrl!,
-          filterQuality: filterQuality,
-          fit: fit,
-          placeholder: (BuildContext context, String url) => config?.placeholder(context, url, width: width, height: height) ?? _cachePlaceholder(context, url, width: width, height: height),
-          errorWidget: (BuildContext context, String url, Object error) => config?.errorBuilder(context, url, error, width: width, height: height) ?? _errorBuilder(context, url, error, width: width, height: height),
+          width: widget.width,
+          height: widget.height,
+          imageUrl: widget.imageUrl!,
+          filterQuality: widget.filterQuality,
+          fit: widget.fit,
+          // 防止从后台返回时闪白
+          fadeInDuration: Duration.zero,
+          fadeOutDuration: Duration.zero,
+          placeholderFadeInDuration: Duration.zero,
+          useOldImageOnUrlChange: true,
+          // 设置内存缓存尺寸，减少内存压力
+          memCacheWidth: widget.width != null && widget.width!.isFinite ? (widget.width! * 2).toInt() : null,
+          memCacheHeight: widget.height != null && widget.height!.isFinite ? (widget.height! * 2).toInt() : null,
+          // 使用 imageBuilder 直接渲染图片，避免任何过渡动画
+          imageBuilder: (context, imageProvider) {
+            // 图片加载完成后更新缓存状态
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && !_isImageCached) {
+                setState(() {
+                  _isImageCached = true;
+                  _cachedProvider = CachedNetworkImageProvider(widget.imageUrl!);
+                });
+              }
+            });
+            return Image(
+              image: imageProvider,
+              width: widget.width,
+              height: widget.height,
+              fit: widget.fit,
+              color: widget.imageColor,
+              filterQuality: widget.filterQuality,
+              gaplessPlayback: true,
+            );
+          },
+          placeholder: (BuildContext context, String url) => widget.config?.placeholder(context, url, width: widget.width, height: widget.height) ?? _cachePlaceholder(context, url, width: widget.width, height: widget.height),
+          errorWidget: (BuildContext context, String url, Object error) => widget.config?.errorBuilder(context, url, error, width: widget.width, height: widget.height) ?? _errorBuilder(context, url, error, width: widget.width, height: widget.height),
         ),
       );
     }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: borderRadius,
       child: Shimmer.fromColors(
-        baseColor: Colors.grey.shade200,
-        highlightColor: Colors.grey.shade100,
-        child: Container(width: width, height: height, color: Colors.grey),
+        baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+        highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+        child: Container(width: widget.width, height: widget.height, color: isDark ? Colors.grey.shade800 : Colors.grey),
       ),
     );
   }
