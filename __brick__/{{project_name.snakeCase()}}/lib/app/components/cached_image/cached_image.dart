@@ -96,6 +96,9 @@ class CachedImage extends StatefulWidget {
 }
 
 class _CachedImageState extends State<CachedImage> {
+  /// 全局缓存 ImageProvider 实例，避免重复创建和磁盘 I/O
+  static final Map<String, CachedNetworkImageProvider> _providerCache = {};
+
   /// 图片是否已经在缓存中
   bool _isImageCached = false;
 
@@ -105,7 +108,7 @@ class _CachedImageState extends State<CachedImage> {
   @override
   void initState() {
     super.initState();
-    _checkImageCache();
+    _restoreOrCheckCache();
   }
 
   @override
@@ -114,6 +117,15 @@ class _CachedImageState extends State<CachedImage> {
     if (oldWidget.imageUrl != widget.imageUrl) {
       _isImageCached = false;
       _cachedProvider = null;
+      _restoreOrCheckCache();
+    }
+  }
+
+  void _restoreOrCheckCache() {
+    if (utils.tools.isNotEmpty(widget.imageUrl) && _providerCache.containsKey(widget.imageUrl!)) {
+      _isImageCached = true;
+      _cachedProvider = _providerCache[widget.imageUrl!];
+    } else {
       _checkImageCache();
     }
   }
@@ -231,6 +243,10 @@ class _CachedImageState extends State<CachedImage> {
           memCacheHeight: widget.height != null && widget.height!.isFinite ? (widget.height! * 2).toInt() : null,
           // 使用 imageBuilder 直接渲染图片，避免任何过渡动画
           imageBuilder: (context, imageProvider) {
+            // 缓存 ImageProvider 实例
+            if (widget.imageUrl != null && !_providerCache.containsKey(widget.imageUrl!)) {
+              _providerCache[widget.imageUrl!] = CachedNetworkImageProvider(widget.imageUrl!);
+            }
             // 图片加载完成后更新缓存状态
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && !_isImageCached) {
