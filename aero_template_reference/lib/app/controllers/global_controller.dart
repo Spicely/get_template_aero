@@ -1,0 +1,17 @@
+import 'package:get/get.dart';
+
+/////////////////////////////////////////////////////////////////////////
+///
+/// All rights reserved.
+///
+/// author: Spicely
+///
+/// Summary: 全局控制器
+///
+/// Date: 2024年12月09日 22:45:19 Monday
+///
+//////////////////////////////////////////////////////////////////////////
+
+class GlobalController extends GetxController {
+  GlobalController();
+}

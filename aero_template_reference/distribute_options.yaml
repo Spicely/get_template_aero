@@ -1,0 +1,59 @@
+output: dist/
+releases:
+  # 构建 dev 包
+  - name: dev
+    jobs:
+      # 构建 android dev 包
+      - name: release-dev-android
+        package:
+          platform: android
+          name: release-dev-android
+          target: apk
+          build_args:
+            target-platform: android-arm,android-arm64
+            dart-define:
+              APP_ENV: dev
+      # 构建 ios dev 包
+      - name: release-dev-ios
+        package:
+          platform: ios
+          target: ipa
+          build_args:
+            dart-define:
+              APP_ENV: dev
+  # 构建 prod 包
+  - name: prod
+    jobs:
+      # 构建 android prod 包
+      - name: release-android
+        package:
+          platform: android
+          target: apk
+          build_args:
+            target-platform: android-arm,android-arm64
+            dart-define:
+              APP_ENV: prod
+      # 构建 ios prod 包
+      - name: release-ios
+        package:
+          platform: ios
+          target: ipa
+          build_args:
+            dart-define:
+              APP_ENV: prod
+      # 构建 windows prod 包
+      - name: release-windows
+        package:
+          platform: windows
+          target: exe
+          build_args:
+            dart-define:
+              APP_ENV: prod
+      # 构建 macos prod 包
+      - name: release-macos
+        package:
+          platform: macos
+          target: dmg
+          build_args:
+            dart-define:
+              APP_ENV: prod

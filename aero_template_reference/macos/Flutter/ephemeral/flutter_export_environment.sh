@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=/opt/homebrew/Caskroom/flutter/3.29.3/flutter"
-export "FLUTTER_APPLICATION_PATH=/Users/spicely/Desktop/www/get_template_aero/__brick__/{{project_name.snakeCase()}}"
+export "FLUTTER_APPLICATION_PATH=/Users/spicely/Desktop/www/get_template_aero/__brick__/aero_template_reference"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=1.0.0"

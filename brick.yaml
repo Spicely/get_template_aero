@@ -32,14 +32,26 @@ vars:
     default: dash
     prompt: What is your project name?
 
-  description_info:
-    type: string
-    description: A short description for your project
-    default: A Flutter project
-    prompt: Provide a short description of your project
-
   org_name:
       type: string
       description: Your organization name (e.g., com.example)
       default: com.example
       prompt: What is your organization name?
+
+  app_display_name:
+    type: string
+    description: The application display name
+    default: My App
+    prompt: What is your app display name?
+
+  flavor_name:
+    type: string
+    description: The flavor/signing configuration name
+    default: zyycomicrach
+    prompt: What is the flavor name?
+
+  description_info:
+    type: string
+    description: A short description for your project
+    default: A Flutter project
+    prompt: Provide a short description of your project
