@@ -23,29 +23,44 @@ Future<void> run(HookContext context) async {
     }
     context.logger.info(result.stdout);
 
-    // 2. Copy Keystore
+    // 2. Handle Keystore
     final assetsKeyPath = './$projectDirName/assets/zyycomicrach.jks';
     final androidAppPath = './$projectDirName/android/app';
-    // Use fixed filename if flavorName matches default, or maybe just always use zyycomicrach.jks for now?
-    // Code below expects zyycomicrach.jks in build.gradle config.
-    // If we want to rename it based on flavor, we should do it here.
-    // However, the keystore ALIAS inside the .jks file is 'zyycomicrach'.
-    // Changing the filename is fine, but changing the alias in build.gradle won't match the key inside the jks file.
-    // Since we cannot change the key alias inside the binary jks, we should probably keep the keystore filename standard
-    // OR just use the provided flavorName and assume the user will replace the keystore later.
-    // For now, let's keep the filename as is if possible, OR rename it if consistent.
-    // Given the user wants to change 'signature', they likely want to customize the CONFIG.
-    // We will keep 'zyycomicrach.jks' as the file source, but we can copy it to whatever filename we want?
-    // No, let's keep it simple: copy as zyycomicrach.jks.
-    // And in build.gradle, we use THAT filename.
-    final androidKeyPath = '$androidAppPath/zyycomicrach.jks';
 
-    final keyFile = File(assetsKeyPath);
-    if (await keyFile.exists()) {
-      await keyFile.copy(androidKeyPath);
-      context.logger.info('Keystore copied to $androidKeyPath');
+    final isDefaultFlavor = flavorName == 'zyycomicrach';
+    final keystoreFilename = isDefaultFlavor ? 'zyycomicrach.jks' : '$flavorName.jks';
+    final keyAlias = isDefaultFlavor ? 'zyycomicrach' : flavorName;
+    final keyStorePassword = '123456';
+    final keyPassword = '123456';
+
+    final androidKeyPath = '$androidAppPath/$keystoreFilename';
+
+    if (isDefaultFlavor) {
+      final keyFile = File(assetsKeyPath);
+      if (await keyFile.exists()) {
+        await keyFile.copy(androidKeyPath);
+        context.logger.info('Keystore copied to $androidKeyPath');
+      } else {
+        context.logger.warn('Keystore not found at $assetsKeyPath, skipping copy.');
+      }
     } else {
-      context.logger.warn('Keystore not found at $assetsKeyPath, skipping copy.');
+      context.logger.info('Generating new keystore for flavor $flavorName...');
+      // Generate new keystore
+      final keytoolArgs = ['-genkey', '-v', '-keystore', keystoreFilename, '-alias', keyAlias, '-keyalg', 'RSA', '-keysize', '2048', '-validity', '10000', '-storepass', keyStorePassword, '-keypass', keyPassword, '-dname', 'CN=$orgName, OU=$flavorName, O=$orgName, L=Unknown, ST=Unknown, C=Unknown'];
+
+      final keytoolResult = await Process.run('keytool', keytoolArgs, workingDirectory: '$androidAppPath');
+
+      if (keytoolResult.exitCode == 0) {
+        context.logger.success('Generated keystore $keystoreFilename');
+      } else {
+        context.logger.err('Failed to generate keystore: ${keytoolResult.stderr}');
+        context.logger.info('Attempting to fallback to copy default keystore...');
+        final keyFile = File(assetsKeyPath);
+        if (await keyFile.exists()) {
+          await keyFile.copy(androidKeyPath);
+          context.logger.info('Fallback: Keystore copied to $androidKeyPath');
+        }
+      }
     }
 
     // 3. Update build.gradle.kts
@@ -61,7 +76,13 @@ Future<void> run(HookContext context) async {
 
     if (buildFile != null) {
       // Replace placeholders in the config string
-      final config = _androidConfig.replaceAll('{{FLAVOR_NAME}}', flavorName).replaceAll('{{APP_DISPLAY_NAME}}', appDisplayName).replaceAll('{{ORG_NAME}}', orgName).replaceAll('{{PROJECT_NAME_SNAKE}}', _toSnakeCase(projectName));
+      final config = _androidConfig
+          .replaceAll('{{FLAVOR_NAME}}', flavorName)
+          .replaceAll('{{APP_DISPLAY_NAME}}', appDisplayName)
+          .replaceAll('{{ORG_NAME}}', orgName)
+          .replaceAll('{{PROJECT_NAME_SNAKE}}', _toSnakeCase(projectName))
+          .replaceAll('{{KEYSTORE_FILE}}', keystoreFilename)
+          .replaceAll('{{KEY_ALIAS}}', keyAlias);
 
       await buildFile.writeAsString(config, mode: FileMode.append);
       context.logger.info('Updated ${buildFile.path} with custom configurations');
@@ -83,6 +104,18 @@ Future<void> run(HookContext context) async {
       context.logger.info('Updated AndroidManifest.xml with placeholders');
     }
 
+    // 5. Run generate_icons
+    context.logger.info('Running generate_icons for flavor: $flavorName');
+    final generateIconsResult = await Process.run('dart', ['tool/generate_icons.dart', '-f', 'flutter_launcher_${flavorName}_icons.yaml'], workingDirectory: './$projectDirName', runInShell: true);
+
+    if (generateIconsResult.exitCode != 0) {
+      context.logger.err(generateIconsResult.stderr);
+      context.logger.warn('Failed to generate icons. You may need to run this manually.');
+    } else {
+      context.logger.info(generateIconsResult.stdout);
+      context.logger.success('Icons generated successfully.');
+    }
+
     progress.complete();
     context.logger.success('================  Template Initialization Success  ======================');
   } catch (e) {
@@ -102,15 +135,15 @@ const _androidConfig = r'''
 android {
     signingConfigs {
         create("release") {
-            storeFile = file("zyycomicrach.jks")
+            storeFile = file("{{KEYSTORE_FILE}}")
             storePassword = "123456"
-            keyAlias = "zyycomicrach"
+            keyAlias = "{{KEY_ALIAS}}"
             keyPassword = "123456"
         }
         create("{{FLAVOR_NAME}}") {
-            storeFile = file("zyycomicrach.jks")
+            storeFile = file("{{KEYSTORE_FILE}}")
             storePassword = "123456"
-            keyAlias = "zyycomicrach"
+            keyAlias = "{{KEY_ALIAS}}"
             keyPassword = "123456"
         }
     }
