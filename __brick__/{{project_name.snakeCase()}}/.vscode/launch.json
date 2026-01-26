@@ -2,6 +2,27 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "iOS Debug",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--flavor",
+                "Runner"
+            ]
+        },
+        {
+            "name": "iOS Release",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "release",
+            "args": [
+                "--flavor",
+                "Runner"
+            ]
+        },
+        {
             "name": "{{project_name}} ({{flavor_name}})",
             "request": "launch",
             "type": "dart",
