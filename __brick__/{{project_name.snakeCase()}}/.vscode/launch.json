@@ -2,24 +2,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "{{project_name}} ({{project_name.snakeCase()}})",
+            "name": "{{project_name}} ({{flavor_name}})",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
             "args": [
                 "--flavor",
-                "{{project_name.snakeCase()}}"
+                "{{flavor_name}}"
             ]
         },
         {
-            "name": "{{project_name}} ({{project_name.snakeCase()}}) [release]",
+            "name": "{{project_name}} ({{flavor_name}}) [release]",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
             "flutterMode": "release",
             "args": [
                 "--flavor",
-                "{{project_name.snakeCase()}}"
+                "{{flavor_name}}"
             ]
         }
     ]

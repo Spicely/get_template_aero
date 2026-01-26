@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../gen/assets.gen.dart';

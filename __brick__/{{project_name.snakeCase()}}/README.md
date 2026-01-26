@@ -18,7 +18,10 @@
     dart run build_runner build
 
     /// 图标生成
-    dart run flutter_launcher_icons
+    dart tool/generate_icons.dart
+    /// 指定配置文件
+    dart tool/generate_icons.dart -f flutter_launcher_{{flavor_name}}_icons.yaml
+
 
     /// 启动页图片
     dart run flutter_native_splash:create
@@ -59,16 +62,3 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 ```
-
-> VS Code Support
-
-该模板包含预配置的 `.vscode/launch.json` 和 `.vscode/tasks.json`。
-
-**调试 (F5)**
-
-- `{{project_name}} ({{project_name.snakeCase()}})`: Debug 模式运行。
-- `{{project_name}} ({{project_name.snakeCase()}}) [release]`: Release 模式运行。
-
-**任务 (Tasks)**
-
-- `flutter: build apk ({{project_name.snakeCase()}}-release)`: 构建 release APK。
