@@ -22,13 +22,6 @@ class SplashController extends GetxController {
     } else {
       Get.dialog(PrivacyDialog(privacyUrl: 'https://www.google.com', userAgreementUrl: 'https://www.google.com', onAgree: onAgree));
     }
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: []);
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.bottom, SystemUiOverlay.top]);
   }
 
   void onAgree() {

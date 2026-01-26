@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "flutter: build apk ({{project_name.snakeCase()}}-release)",
+            "type": "shell",
+            "command": "flutter",
+            "args": [
+                "build",
+                "apk",
+                "--release",
+                "--flavor",
+                "{{project_name.snakeCase()}}"
+            ],
+            "group": "build"
+        },
+    ]
+}
