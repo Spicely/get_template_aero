@@ -6,10 +6,6 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
-            "args": [
-                "--flavor",
-                "Runner"
-            ]
         },
         {
             "name": "iOS Release",
@@ -17,10 +13,6 @@
             "type": "dart",
             "program": "lib/main.dart",
             "flutterMode": "release",
-            "args": [
-                "--flavor",
-                "Runner"
-            ]
         },
         {
             "name": "{{project_name}} ({{flavor_name}})",
