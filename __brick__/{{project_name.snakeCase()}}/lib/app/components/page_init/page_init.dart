@@ -65,18 +65,16 @@ class _PageInitState extends State<PageInit> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        if (!didPop) {
-          if (widget.isBackToDesktop) {
-            if (Platform.isAndroid) {
-              await BackToDesktop.backToDesktop();
-              return;
-            }
-            Navigator.pop(context);
-          } else {
-            _doubleExit();
+        if (widget.isBackToDesktop) {
+          if (Platform.isAndroid) {
+            await BackToDesktop.backToDesktop();
+            return;
           }
+          Navigator.pop(context);
+        } else {
+          _doubleExit();
         }
       },
       child: GestureDetector(
