@@ -1,3 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../../../../gen/assets.gen.dart';
@@ -15,16 +17,16 @@ class SplashController extends GetxController {
   void onReady() {
     super.onReady();
     if (utils.db.config.isAgreement) {
-      Future.delayed(const Duration(seconds: 2), () {
-        Get.offAllNamed(Routes.HOME);
-      });
+      onAgree();
     } else {
       Get.dialog(PrivacyDialog(privacyUrl: 'https://www.google.com', userAgreementUrl: 'https://www.google.com', onAgree: onAgree));
     }
   }
 
-  void onAgree() {
+  Future<void> onAgree() async {
     Get.offAllNamed(Routes.HOME);
+    final context = Get.context!;
+    await Future.wait(g.menuItems.expand((item) => [precacheImage(CachedNetworkImageProvider(item.icon), context), precacheImage(CachedNetworkImageProvider(item.activeIcon), context)]));
     utils.db.config.isAgreement = true;
   }
 }
