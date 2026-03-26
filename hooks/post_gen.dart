@@ -23,7 +23,29 @@ Future<void> run(HookContext context) async {
     }
     context.logger.info(result.stdout);
 
-    // 2. Handle Keystore
+    // 2. Clone code-review-skill into .agent/skills
+    context.logger.info('Cloning code-review-skill into .agent/skills...');
+    final skillsDir = './$projectDirName/.agent/skills';
+    final codeReviewSkillDir = '$skillsDir/code-review-skill';
+    final skillDir = Directory(codeReviewSkillDir);
+    if (await skillDir.exists()) {
+      context.logger.info('code-review-skill already exists, skipping clone.');
+    } else {
+      await Directory(skillsDir).create(recursive: true);
+      final cloneResult = await Process.run(
+        'git',
+        ['clone', 'https://github.com/awesome-skills/code-review-skill', 'code-review-skill'],
+        workingDirectory: skillsDir,
+        runInShell: true,
+      );
+      if (cloneResult.exitCode != 0) {
+        context.logger.warn('Failed to clone code-review-skill: ${cloneResult.stderr}');
+      } else {
+        context.logger.success('code-review-skill cloned successfully.');
+      }
+    }
+
+    // 3. Handle Keystore
     final assetsKeyPath = './$projectDirName/assets/zyycomicrach.jks';
     final androidAppPath = './$projectDirName/android/app';
 
@@ -63,7 +85,7 @@ Future<void> run(HookContext context) async {
       }
     }
 
-    // 3. Update build.gradle.kts
+    // 4. Update build.gradle.kts
     final buildFileKts = File('$androidAppPath/build.gradle.kts');
     final buildFileGroovy = File('$androidAppPath/build.gradle');
 
@@ -90,7 +112,7 @@ Future<void> run(HookContext context) async {
       context.logger.warn('No build.gradle(.kts) found in $androidAppPath');
     }
 
-    // 4. Update AndroidManifest.xml
+    // 5. Update AndroidManifest.xml
     final manifestFile = File('$androidAppPath/src/main/AndroidManifest.xml');
     if (await manifestFile.exists()) {
       var content = await manifestFile.readAsString();
@@ -104,7 +126,7 @@ Future<void> run(HookContext context) async {
       context.logger.info('Updated AndroidManifest.xml with placeholders');
     }
 
-    // 5. Run generate_icons
+    // 6. Run generate_icons
     context.logger.info('Running generate_icons for flavor: $flavorName');
     final generateIconsResult = await Process.run('dart', ['tool/generate_icons.dart', '-f', 'flutter_launcher_${flavorName}_icons.yaml'], workingDirectory: './$projectDirName', runInShell: true);
 
