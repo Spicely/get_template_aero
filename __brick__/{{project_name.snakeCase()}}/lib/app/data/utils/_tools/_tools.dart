@@ -158,10 +158,10 @@ class _Tools {
     return obj == null
         ? defaultValue
         : obj is String
-            ? obj.isEmpty
-                ? defaultValue
-                : obj
-            : obj;
+        ? obj.isEmpty
+              ? defaultValue
+              : obj
+        : obj;
   }
 
   TextInputFormatter phoneInputFormatter() {
