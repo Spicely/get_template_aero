@@ -17,9 +17,7 @@
     /// 依据env生成
     dart run build_runner build
 
-    /// 图标生成
-    dart tool/generate_icons.dart
-    /// 指定配置文件
+    /// 图标生成（依据 flavor 配置文件）
     dart tool/generate_icons.dart -f flutter_launcher_{{flavor_name}}_icons.yaml
 
 
