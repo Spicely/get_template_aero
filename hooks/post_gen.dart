@@ -122,6 +122,28 @@ Future<void> run(HookContext context) async {
       content = content.replaceAll(RegExp(r'android:label="[^"]*"'), 'android:label="\${appName}"');
       content = content.replaceAll(RegExp(r'android:icon="[^"]*"'), 'android:icon="\${icon}"');
 
+      // Inject required permissions after <manifest ...> tag
+      final permissionsBlock = '''
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />''';
+
+      // Insert permissions after the <manifest> opening tag, before <application>
+      if (!content.contains('android.permission.CAMERA')) {
+        content = content.replaceFirst(
+          RegExp(r'(<manifest[^>]*>)'),
+          '\$1\n$permissionsBlock\n',
+        );
+        context.logger.info('Injected Android permissions into AndroidManifest.xml');
+      } else {
+        context.logger.info('Permissions already present in AndroidManifest.xml, skipping injection.');
+      }
+
       await manifestFile.writeAsString(content);
       context.logger.info('Updated AndroidManifest.xml with placeholders');
     }
