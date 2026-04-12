@@ -65,6 +65,7 @@ dependencies:
   back_to_desktop:
     git:
       url: https://github.com/Spicely/android_back_to_desktop.git
+  flutter_bugly:
   
 
 dev_dependencies:

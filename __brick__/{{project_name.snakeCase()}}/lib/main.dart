@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bugly/flutter_bugly.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -15,24 +14,13 @@ import 'app/routes/app_pages.dart';
 import 'generated/l10n.dart';
 
 void main() async {
-  runZonedGuarded(
+  FlutterBugly.postCatchedException(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
       SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.dark));
       await utils.init();
 
       Get.put(GlobalController());
-
-      // 捕获 Flutter 框架同步异常
-      FlutterError.onError = (FlutterErrorDetails details) {
-        FlutterError.presentError(details);
-        final error = details.exception;
-        if (error is DioException) {
-          utils.error.dioError(error);
-        } else {
-          utils.error.error(error);
-        }
-      };
 
       runApp(
         ScreenUtilInit(
@@ -58,11 +46,14 @@ void main() async {
               getPages: AppPages.routes,
               builder: EasyLoading.init(
                 builder: (context, child) {
-                  return GestureDetector(
-                    onTap: () {
-                      primaryFocus?.unfocus();
-                    },
-                    child: child ?? const SizedBox(),
+                  return MediaQuery(
+                    data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+                    child: GestureDetector(
+                      onTap: () {
+                        primaryFocus?.unfocus();
+                      },
+                      child: child ?? const SizedBox(),
+                    ),
                   );
                 },
               ),
@@ -71,12 +62,13 @@ void main() async {
         ),
       );
     },
-    (Object error, StackTrace stack) {
-      // 捕获异步或未处理到的异常
+    onException: (FlutterErrorDetails details) {
+      // 双上报：发送至腾讯 Bugly 的同时，也记录到自己的服务器异常日志中
+      final error = details.exception;
       if (error is DioException) {
         utils.error.dioError(error);
       } else {
-        utils.error.error(error);
+        utils.error.report(error, stack: details.stack);
       }
     },
   );

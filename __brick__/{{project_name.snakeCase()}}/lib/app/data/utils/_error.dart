@@ -26,4 +26,6 @@ class _Error {
       return;
     }
   }
+
+  void report(Object error, {StackTrace? stack}) async {}
 }

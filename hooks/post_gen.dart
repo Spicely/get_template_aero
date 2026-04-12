@@ -85,7 +85,13 @@ Future<void> run(HookContext context) async {
       }
     }
 
-    // 4. Update build.gradle.kts
+    // 4. Detect AGP version to decide packaging vs packagingOptions
+    final agpVersion = await _detectAgpVersion('./$projectDirName/android');
+    final isAgp8OrAbove = _isAgp8OrAbove(agpVersion);
+    final packagingKeyword = isAgp8OrAbove ? 'packaging' : 'packagingOptions';
+    context.logger.info('Detected AGP version: ${agpVersion ?? "unknown"}, using "$packagingKeyword"');
+
+    // 5. Update build.gradle.kts
     final buildFileKts = File('$androidAppPath/build.gradle.kts');
     final buildFileGroovy = File('$androidAppPath/build.gradle');
 
@@ -104,7 +110,8 @@ Future<void> run(HookContext context) async {
           .replaceAll('{{ORG_NAME}}', orgName)
           .replaceAll('{{PROJECT_NAME_SNAKE}}', _toSnakeCase(projectName))
           .replaceAll('{{KEYSTORE_FILE}}', keystoreFilename)
-          .replaceAll('{{KEY_ALIAS}}', keyAlias);
+          .replaceAll('{{KEY_ALIAS}}', keyAlias)
+          .replaceAll('{{PACKAGING_KEYWORD}}', packagingKeyword);
 
       await buildFile.writeAsString(config, mode: FileMode.append);
       context.logger.info('Updated ${buildFile.path} with custom configurations');
@@ -112,7 +119,7 @@ Future<void> run(HookContext context) async {
       context.logger.warn('No build.gradle(.kts) found in $androidAppPath');
     }
 
-    // 5. Update AndroidManifest.xml
+    // 6. Update AndroidManifest.xml
     final manifestFile = File('$androidAppPath/src/main/AndroidManifest.xml');
     if (await manifestFile.exists()) {
       var content = await manifestFile.readAsString();
@@ -148,7 +155,7 @@ Future<void> run(HookContext context) async {
       context.logger.info('Updated AndroidManifest.xml with placeholders');
     }
 
-    // 6. Run generate_icons
+    // 7. Run generate_icons
     context.logger.info('Running generate_icons for flavor: $flavorName');
     final generateIconsResult = await Process.run('dart', ['tool/generate_icons.dart', '-f', 'flutter_launcher_${flavorName}_icons.yaml'], workingDirectory: './$projectDirName', runInShell: true);
 
@@ -192,6 +199,15 @@ android {
         }
     }
 
+    {{PACKAGING_KEYWORD}} {
+        dex {
+            useLegacyPackaging = true
+        }
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     buildTypes {
         getByName("debug") {
             signingConfig = signingConfigs.getByName("{{FLAVOR_NAME}}")
@@ -205,7 +221,7 @@ android {
 
             signingConfig = signingConfigs.getByName("{{FLAVOR_NAME}}")
             
-            packaging {
+            {{PACKAGING_KEYWORD}} {
                 jniLibs {
                     pickFirsts += listOf(
                         "**/libc++_shared.so",
@@ -255,3 +271,66 @@ android {
     }
 }
 ''';
+
+/// Detect AGP version from the project-level gradle files.
+/// Searches in settings.gradle(.kts) and build.gradle(.kts) for the AGP version.
+Future<String?> _detectAgpVersion(String androidDir) async {
+  // Search patterns for AGP version in different gradle file formats
+  final filesToCheck = [
+    '$androidDir/settings.gradle.kts',
+    '$androidDir/settings.gradle',
+    '$androidDir/build.gradle.kts',
+    '$androidDir/build.gradle',
+  ];
+
+  // Patterns to match AGP version declaration
+  // settings.gradle.kts: id("com.android.application") version "8.1.0" apply false
+  // build.gradle.kts:    classpath("com.android.tools.build:gradle:7.4.2")
+  // settings.gradle:     id 'com.android.application' version '8.1.0' apply false
+  // build.gradle:        classpath 'com.android.tools.build:gradle:7.4.2'
+  final patterns = [
+    // Settings: id "com.android.application" version "X.Y.Z"
+    RegExp(r'''id\s*[(\s]*["']com\.android\.application["']\s*[)\s]*\s*version\s*[(\s]*["'](\d+\.\d+[^"']*)["']'''),
+    // Classpath: com.android.tools.build:gradle:X.Y.Z
+    RegExp(r'''com\.android\.tools\.build:gradle:(\d+\.\d+[^"']*)["']'''),
+    // libs.plugins style or variable reference — try to find agp version in version catalog
+    RegExp(r'''agp\s*=\s*["'](\d+\.\d+[^"']*)["']'''),
+  ];
+
+  for (final filePath in filesToCheck) {
+    final file = File(filePath);
+    if (await file.exists()) {
+      final content = await file.readAsString();
+      for (final pattern in patterns) {
+        final match = pattern.firstMatch(content);
+        if (match != null) {
+          return match.group(1);
+        }
+      }
+    }
+  }
+
+  // Also check gradle/libs.versions.toml for version catalog
+  final versionCatalog = File('$androidDir/gradle/libs.versions.toml');
+  if (await versionCatalog.exists()) {
+    final content = await versionCatalog.readAsString();
+    final match = RegExp(r'''agp\s*=\s*["'](\d+\.\d+[^"']*)["']''').firstMatch(content);
+    if (match != null) {
+      return match.group(1);
+    }
+  }
+
+  return null;
+}
+
+/// Check if AGP version is 8.0.0 or above.
+/// Defaults to true (use `packaging`) if version cannot be determined,
+/// since newer Flutter projects typically use AGP 8+.
+bool _isAgp8OrAbove(String? version) {
+  if (version == null) return true; // Default to AGP 8+ for newer projects
+  final parts = version.split('.');
+  if (parts.isEmpty) return true;
+  final major = int.tryParse(parts[0]);
+  if (major == null) return true;
+  return major >= 8;
+}
