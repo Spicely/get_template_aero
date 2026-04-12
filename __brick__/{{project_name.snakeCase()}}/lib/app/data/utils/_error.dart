@@ -27,5 +27,7 @@ class _Error {
     }
   }
 
-  void report(Object error, {StackTrace? stack}) async {}
+  void report(Object error, {StackTrace? stack}) async {
+    utils.logger.e(error, stackTrace: stack);
+  }
 }
