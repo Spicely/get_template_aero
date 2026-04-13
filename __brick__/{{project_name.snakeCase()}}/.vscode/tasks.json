@@ -14,5 +14,29 @@
             ],
             "group": "build"
         },
+        {
+            "label": "flutter: build appbundle ({{project_name.snakeCase()}}-release)",
+            "type": "shell",
+            "command": "flutter",
+            "args": [
+                "build",
+                "appbundle",
+                "--release",
+                "--flavor",
+                "{{project_name.snakeCase()}}"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "flutter: build ipa ({{project_name.snakeCase()}}-release)",
+            "type": "shell",
+            "command": "flutter",
+            "args": [
+                "build",
+                "ipa",
+                "--release"
+            ],
+            "group": "build"
+        }
     ]
 }
