@@ -142,10 +142,14 @@ Future<void> run(HookContext context) async {
 
       // Insert permissions after the <manifest> opening tag, before <application>
       if (!content.contains('android.permission.CAMERA')) {
-        content = content.replaceFirst(
-          RegExp(r'(<manifest[^>]*>)'),
-          '\$1\n$permissionsBlock\n',
-        );
+        final manifestMatch = RegExp(r'<manifest[^>]*>').firstMatch(content);
+        if (manifestMatch != null) {
+          final manifestTag = manifestMatch.group(0)!;
+          content = content.replaceFirst(
+            manifestTag,
+            '$manifestTag\n$permissionsBlock\n',
+          );
+        }
         context.logger.info('Injected Android permissions into AndroidManifest.xml');
       } else {
         context.logger.info('Permissions already present in AndroidManifest.xml, skipping injection.');
