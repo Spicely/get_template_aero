@@ -24,6 +24,7 @@ class SplashController extends GetxController {
   }
 
   Future<void> onAgree() async {
+    await g.fetchMenuItems();
     final context = Get.context!;
     await Future.wait(g.menuItems.expand((item) => [precacheImage(CachedNetworkImageProvider(item.icon), context), precacheImage(CachedNetworkImageProvider(item.activeIcon), context)]));
     utils.db.config.isAgreement = true;
