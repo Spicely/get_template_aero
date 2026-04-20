@@ -2,41 +2,29 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "flutter: build apk ({{project_name}}-release)",
+            "label": "编译{{app_display_name}} APK",
             "type": "shell",
-            "command": "flutter",
-            "args": [
-                "build",
-                "apk",
-                "--release",
-                "--flavor",
-                "{{flavor_name}}"
-            ],
-            "group": "build"
+            "command": "flutter build apk --release --flavor {{flavor_name}} --target lib/main.dart --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_android}} --dart-define=ID={{id_android}} --split-debug-info=build/symbols --obfuscate",
+            "osx": {
+                "command": "flutter build apk --release --flavor {{flavor_name}} --target lib/main.dart --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_android}} --dart-define=ID={{id_android}} --split-debug-info=build/symbols --obfuscate && open ${workspaceFolder}/build/app/outputs/apk/{{flavor_name}}/release"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "编译{{app_display_name}} APK 并打开输出文件夹"
         },
         {
-            "label": "flutter: build appbundle ({{project_name}}-release)",
+            "label": "编译{{app_display_name}} IPA",
             "type": "shell",
-            "command": "flutter",
-            "args": [
-                "build",
-                "appbundle",
-                "--release",
-                "--flavor",
-                "{{flavor_name}}"
-            ],
-            "group": "build"
-        },
-        {
-            "label": "flutter: build ipa ({{project_name}}-release)",
-            "type": "shell",
-            "command": "flutter",
-            "args": [
-                "build",
-                "ipa",
-                "--release"
-            ],
-            "group": "build"
+            "command": "flutter build ios --release --obfuscate --split-debug-info=./debug_info --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_ios}} --dart-define=ID={{id_ios}}",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "编译{{app_display_name}} IPA"
         }
     ]
 }

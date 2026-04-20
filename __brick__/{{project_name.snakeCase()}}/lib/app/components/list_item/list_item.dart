@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /////////////////////////////////////////////////////////////////////////
 ///
@@ -64,6 +65,12 @@ class ListItem extends StatelessWidget {
   /// 显示分割线
   final bool showDivider;
 
+  /// 分割线颜色
+  final Color? dividerColor;
+
+  /// 分割线粗细
+  final double? dividerThickness;
+
   /// 分割线左边距离
   final double dividerIndex;
 
@@ -96,6 +103,8 @@ class ListItem extends StatelessWidget {
     this.borderRadius,
     this.boxShadow,
     this.showDivider = false,
+    this.dividerColor,
+    this.dividerThickness,
     this.dividerIndex = 0,
     this.dividerEndIndex = 0,
     this.leading,
@@ -155,12 +164,12 @@ class ListItem extends StatelessWidget {
                           ),
                     showArrow
                         ? Padding(
-                            padding: const EdgeInsets.only(left: 5, top: 1.5),
+                            padding: EdgeInsets.only(left: 8.w),
                             child: Center(
                               child: Icon(
-                                Icons.arrow_forward_ios,
-                                size: 13,
-                                color: iconColor ?? Theme.of(context).hintColor.withValues(alpha: 0.2),
+                                Icons.chevron_right_rounded,
+                                size: 24.sp,
+                                color: iconColor ?? const Color(0xFFD1D5DB),
                               ),
                             ),
                           )
@@ -169,7 +178,15 @@ class ListItem extends StatelessWidget {
                 ),
               ),
             ),
-            showDivider ? Divider(height: 0.1, indent: dividerIndex, endIndent: dividerEndIndex) : Container(),
+            showDivider
+                ? Divider(
+                    height: dividerThickness ?? 0.1,
+                    thickness: dividerThickness,
+                    color: dividerColor,
+                    indent: dividerIndex,
+                    endIndent: dividerEndIndex,
+                  )
+                : Container(),
           ],
         ),
       ),

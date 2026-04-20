@@ -55,3 +55,27 @@ vars:
     description: A short description for your project
     default: A Flutter project
     prompt: Provide a short description of your project
+
+  channel_android:
+    type: string
+    description: The Android channel ID
+    default: DLXJJL001
+    prompt: What is the Android channel ID?
+
+  channel_ios:
+    type: string
+    description: The iOS channel ID
+    default: DNXJ2IOS
+    prompt: What is the iOS channel ID?
+
+  id_android:
+    type: string
+    description: The Android App ID
+    default: "45"
+    prompt: What is the Android App ID?
+
+  id_ios:
+    type: string
+    description: The iOS App ID
+    default: "46"
+    prompt: What is the iOS App ID?

@@ -62,6 +62,31 @@ This skill defines the coding standards for the Luma Flu project. You MUST follo
 
 #### 3. Lists & Grids
 
+**Component:** `SmartRefresh`
+
+- **Path:** `lib/app/components/smart_refresh/smart_refresh.dart`
+- **Description:** A unified component for handling pull-to-refresh, load more, initial data fetching (skeleton/loading states), and empty states.
+- **When to use:** Whenever building a list or grid that requires pulling to refresh, pagination, or standard loading/empty states.
+- **Example:**
+  ```dart
+  SmartRefresh(
+    controller: controller.refreshController,
+    onRefresh: controller.onRefresh,
+    onLoadMore: controller.onLoadMore,
+    initData: controller.initData,
+    isEmpty: () => controller.items.isEmpty,
+    emptyText: '暂无数据',
+    loadingWidget: LoadingSkeleton(), // Shown during initData
+    childBuilder: (context, physics) {
+      return ListView.builder(
+        physics: physics, // Must pass physics to the scrollable
+        itemCount: controller.items.length,
+        itemBuilder: (context, index) => Text(controller.items[index]),
+      );
+    },
+  )
+  ```
+
 **Component:** `ListItem`
 
 - **Path:** `lib/app/components/list_item/list_item.dart`
@@ -133,6 +158,8 @@ This skill defines the coding standards for the Luma Flu project. You MUST follo
 
 #### 6. Dialogs
 
+**Rule:** Custom dialog components MUST be created in their own folder under `lib/app/components/dialog/` (e.g., `lib/app/components/dialog/{dialog_name}/{dialog_name}.dart`). Do not write raw UI widgets directly inside `Get.dialog`.
+
 **Component:** `PermissionDialog`
 
 - **Path:** `lib/app/components/dialog/permission_dialog/permission_dialog.dart`
@@ -142,6 +169,16 @@ This skill defines the coding standards for the Luma Flu project. You MUST follo
 
 - **Path:** `lib/app/components/dialog/upgrade_dialog/upgrade_dialog.dart`
 - **Description:** App update dialog showing version info and progress.
+
+**Component:** `ImagePreviewDialog`
+
+- **Path:** `lib/app/components/dialog/image_preview_dialog/image_preview_dialog.dart`
+- **Description:** Dialog for previewing images with a dark overlay.
+
+**Component:** `ConfirmDialog`
+
+- **Path:** `lib/app/components/dialog/confirm_dialog/confirm_dialog.dart`
+- **Description:** A modern, customizable confirmation dialog replacing `Get.defaultDialog`.
 
 ## 2. Data & Utilities (`lib/app/data`)
 
@@ -162,6 +199,11 @@ The project uses a singleton `utils` object to access core services.
 - **`models/`**: Place all data models here.
 - **`database/`**: Database related logic.
 - **`theme/`**: Theme configurations.
+- **`mixins/`**: Reusable mixins for controllers.
+  - **`RouterMixin`**: All routing navigation MUST be centralized here. The UI layer should NOT contain any conditional routing logic (`if (title == 'xxx')`). Furthermore, avoid using "unified" string-matching handlers. Instead, define **explicit, granular methods** for each navigation action (e.g., `toDrafts()`, `toAbout()`) inside `RouterMixin`. The UI components should bind to these specific methods directly via explicit callbacks (e.g., `onTap: homeController.toAbout`).
+  - **`DialogMixin`**: All dialog invocations (e.g., `Get.dialog`, `Get.defaultDialog`) MUST be centralized here. Controllers should mix in `DialogMixin` to trigger dialogs (e.g., `showConfirmDialog`, `showImagePreview`). UI logic for dialogs should be extracted into separate components under `lib/app/components/dialog`.
+  - **`PermissionMixin`**: Used for handling permission requests.
+  - **`FocusMixin`**: Used for handling keyboard dismissal and focus logic.
 
 ### Usage Example:
 
@@ -182,3 +224,14 @@ void example() {
 - **Consistency:** Follow the existing file structure and naming conventions.
 - **Imports:** Use specific imports or relative imports consistent with the file functionality.
 - **State Management:** Use GetX for state management where appropriate (aligned with project patterns).
+
+## 4. UI/UX & Interaction Design
+
+**Rule:** UI interactions MUST NOT be stiff or abrupt (生硬处理). All interactive elements, state changes, and overlays MUST include appropriate animations and physical feedback.
+
+### Interaction Guidelines:
+
+- **State Transitions:** Avoid sudden `if (show)` pop-ins. Use `AnimatedSwitcher`, `AnimatedOpacity`, or `AnimatedSize` to transition UI states smoothly.
+- **Physical Feedback (Bounce/Scale):** Interactive elements (like buttons or selectable cards) should provide tactile visual feedback. Use `AnimatedScale` (e.g., shrinking to `0.92` on press) coupled with bouncy curves like `Curves.easeOutBack` or `Curves.elasticOut`.
+- **Depth and Shadows:** Use dynamic `BoxShadow` that intensifies, drops, or spreads out when an element becomes active.
+- **Overlays & Glassmorphism:** When presenting modal overlays or delete masks, prefer `BackdropFilter` (frosted glass/blur) over flat semi-transparent black masks for a premium, organic feel.
