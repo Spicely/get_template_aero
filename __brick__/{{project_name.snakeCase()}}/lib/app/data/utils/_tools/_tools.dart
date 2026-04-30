@@ -246,4 +246,10 @@ class _Tools {
       downloads.value = updatedList;
     }
   }
+
+  /// 移除 html 中的 p 标签
+  String removePTags(String? htmlString) {
+    if (htmlString == null || htmlString.isEmpty) return '';
+    return htmlString.replaceAll(RegExp(r'<\/?p[^>]*>'), '');
+  }
 }

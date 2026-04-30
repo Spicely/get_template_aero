@@ -63,6 +63,7 @@ dependencies:
   uuid:
   flutter_easyloading:
   back_to_desktop:
+  easy_refresh:
     git:
       url: https://github.com/Spicely/android_back_to_desktop.git
   flutter_bugly:

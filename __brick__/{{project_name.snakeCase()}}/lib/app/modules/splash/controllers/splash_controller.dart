@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bugly/flutter_bugly.dart';
 import 'package:get/get.dart';
 
 import '../../../../gen/assets.gen.dart';
@@ -24,6 +25,7 @@ class SplashController extends GetxController {
   }
 
   Future<void> onAgree() async {
+    FlutterBugly.init(androidAppId: utils.config.sdkConfig.buglyAndroidAppId, iOSAppId: utils.config.sdkConfig.buglyIosAppId);
     await g.fetchMenuItems();
     final context = Get.context!;
     await Future.wait(g.menuItems.expand((item) => [precacheImage(CachedNetworkImageProvider(item.icon), context), precacheImage(CachedNetworkImageProvider(item.activeIcon), context)]));
