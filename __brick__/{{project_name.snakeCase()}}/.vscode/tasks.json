@@ -18,13 +18,16 @@
         {
             "label": "编译{{app_display_name}} IPA",
             "type": "shell",
-            "command": "flutter build ios --release --obfuscate --split-debug-info=./debug_info --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_ios}} --dart-define=ID={{id_ios}}",
+            "command": "flutter build ipa --release --obfuscate --split-debug-info=./debug_info --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_ios}} --dart-define=ID={{id_ios}}",
+            "osx": {
+                "command": "flutter build ipa --release --obfuscate --split-debug-info=./debug_info --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_ios}} --dart-define=ID={{id_ios}} && open ${workspaceFolder}/build/ios/ipa"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": [],
-            "detail": "编译{{app_display_name}} IPA"
+            "detail": "编译{{app_display_name}} IPA 并打开输出文件夹"
         }
     ]
 }
