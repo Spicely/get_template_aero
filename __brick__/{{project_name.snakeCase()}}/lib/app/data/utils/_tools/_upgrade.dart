@@ -26,21 +26,30 @@ class _Upgrade with PermissionMixin {
   void inspect({bool callToast = true}) {
     if (isUpgrade.value) return;
     isUpgrade.value = true;
-    utils.tools.exceptionCapture(() async {
-      data.value = await checkUpgrade();
-      if (data.value.isUpgrade) {
-        if (data.value.isSilentUpgrade) {
-          upgrade();
+    utils.tools.exceptionCapture(
+      () async {
+        data.value = await checkUpgrade();
+        if (data.value.isUpgrade) {
+          if (data.value.isSilentUpgrade) {
+            upgrade();
+          } else {
+            Get.dialog(const UpgradeDialog(), barrierDismissible: false);
+          }
         } else {
-          Get.dialog(const UpgradeDialog(), barrierDismissible: false);
+          isUpgrade.value = false;
+          if (callToast) {
+            noUpgradeToast();
+          }
         }
-      } else {
+      },
+      error: (_) {
         isUpgrade.value = false;
-        if (callToast) {
-          noUpgradeToast();
-        }
-      }
-    });
+      },
+      dioError: (e) {
+        isUpgrade.value = false;
+        utils.error.dioError(e);
+      },
+    );
   }
 
   /// 返回更新信息
@@ -108,10 +117,7 @@ class _Upgrade with PermissionMixin {
   /// 安装应用
   Future<void> _install(String filePath) async {
     await requestStoragePermission();
-    const types = {
-      '.apk': 'application/vnd.android.package-archive',
-      '.exe': 'application/octet-stream',
-    };
+    const types = {'.apk': 'application/vnd.android.package-archive', '.exe': 'application/octet-stream'};
 
     switch (Platform.operatingSystem) {
       case 'android':
