@@ -4,29 +4,13 @@
         {
             "label": "编译{{app_display_name}} APK",
             "type": "shell",
-            "command": "flutter build apk --release --flavor {{flavor_name}} --target lib/main.dart --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_android}} --dart-define=ID={{id_android}} --split-debug-info=build/symbols --obfuscate",
-            "osx": {
-                "command": "flutter build apk --release --flavor {{flavor_name}} --target lib/main.dart --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_android}} --dart-define=ID={{id_android}} --split-debug-info=build/symbols --obfuscate && open ${workspaceFolder}/build/app/outputs/apk/{{flavor_name}}/release"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [],
+            "command": "flutter build apk --release --flavor {{flavor_name}} --target lib/main.dart --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_android}} --dart-define=ID={{id_android}} --split-debug-info=build/symbols --obfuscate && open ${workspaceFolder}/build/app/outputs/apk/{{flavor_name}}/release",
             "detail": "编译{{app_display_name}} APK 并打开输出文件夹"
         },
         {
             "label": "编译{{app_display_name}} IPA",
             "type": "shell",
-            "command": "flutter build ipa --release --obfuscate --split-debug-info=./debug_info --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_ios}} --dart-define=ID={{id_ios}}",
-            "osx": {
-                "command": "flutter build ipa --release --obfuscate --split-debug-info=./debug_info --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_ios}} --dart-define=ID={{id_ios}} && open ${workspaceFolder}/build/ios/ipa"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [],
+            "command": "flutter build ipa --release --obfuscate --split-debug-info=./debug_info --dart-define=FLAVOR={{flavor_name}} --dart-define=CHANNEL={{channel_ios}} --dart-define=ID={{id_ios}} && open ${workspaceFolder}/build/ios/ipa",
             "detail": "编译{{app_display_name}} IPA 并打开输出文件夹"
         }
     ]
