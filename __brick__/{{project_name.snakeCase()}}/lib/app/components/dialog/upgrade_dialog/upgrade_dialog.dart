@@ -73,7 +73,7 @@ class UpgradeDialog extends StatelessWidget {
                                       padding: EdgeInsets.zero,
                                       children: [
                                         Html(
-                                          data: utils.tools.removePTags(utils.upgrade.data.value.versionDesc),
+                                          data: utils.upgrade.data.value.versionDesc,
                                           onLinkTap: (url, attributes, element) async {
                                             if (url != null) {
                                               final Uri uri = Uri.parse(url);
