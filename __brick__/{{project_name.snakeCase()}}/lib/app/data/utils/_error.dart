@@ -20,10 +20,21 @@ class _Error {
   }
 
   void error(Object error) {
+    EasyLoading.dismiss();
     utils.logger.e(error);
-    if (error is PermissionException) {
-      Get.dialog(PermissionDialog(exception: error), barrierDismissible: false, useSafeArea: false);
-      return;
+    switch (error) {
+      case ToastException():
+        EasyLoading.showToast(error.message);
+      case PermissionException():
+        Get.dialog(PermissionDialog(exception: error), barrierDismissible: false, useSafeArea: false);
+      case LoginCancelException(showPrompt: true):
+        break;
+      case InsufficientPointsException():
+        EasyLoading.showToast('积分余额不足');
+      case DioException():
+        EasyLoading.showToast(error.message ?? '');
+      default:
+        break;
     }
   }
 
