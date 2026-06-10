@@ -17,6 +17,7 @@ void main() async {
   FlutterBugly.postCatchedException(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.dark));
       await utils.init();
 
