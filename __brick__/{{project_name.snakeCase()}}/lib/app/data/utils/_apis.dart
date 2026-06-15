@@ -20,30 +20,22 @@ class _Apis {
   void init() {
     _http.baseUrl = kReleaseMode ? config.BASE_URL : config.BASE_URL_DEV;
 
-    _http.interceptors = (Dio? d) {
-      return [
-        InterceptorsWrapper(
-          onRequest: (options, handler) async {
-            options.headers = {
-              ...options.headers,
-
-              /// 增加固定参数
-              'channel': 'ACJL001',
-            };
-            handler.next(options);
-          },
-          onResponse: (Response<dynamic> response, ResponseInterceptorHandler handler) {
-            switch (response.data['code']) {
-              case 100:
-                response.data = response.data['data'];
-                handler.next(response);
-                break;
-              default:
-                handler.reject(DioException(requestOptions: response.requestOptions, error: response.data['code'], message: response.data['message']));
-            }
-          },
-        ),
-      ];
+    _http.headerBuilder = () async {
+      return {
+        /// 增加固定参数
+        'channel': 'ACJL001',
+      };
+    };
+    _http.responseValidator = (data) {
+      if (data is! Map<String, dynamic>) {
+        throw DioException(requestOptions: RequestOptions(), error: 'invalid_response', message: 'Response payload must be a JSON object.');
+      }
+      switch (data['code']) {
+        case 100:
+          return data['data'];
+        default:
+          throw DioException(requestOptions: RequestOptions(), error: data['code'], message: data['message']);
+      }
     };
   }
 
